@@ -15,7 +15,12 @@ s3_fs = s3fs.S3FileSystem()
 def to_tfrecords(df, folder, compression_type='GZIP', compression_level=9, columns=None, max_mb=50):
     schema = get_schema(df, columns)
     tfrecords = get_tfrecords(df, schema)
-    tfrecords = split_by_size(tfrecords, max_mb=max_mb)
+
+    if max_mb:
+        tfrecords = split_by_size(tfrecords, max_mb=max_mb)
+    else:
+        tfrecords = [[i for in tfrecords]]
+
     write_tfrecords(tfrecords, folder,
                     compression_type=compression_type,
                     compression_level=compression_level)
