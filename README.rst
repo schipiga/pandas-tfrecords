@@ -1,5 +1,5 @@
 **************************
-pandas-tfrecords convertor
+pandas-tfrecords converter
 **************************
 
 This project was born under impression from `spark-tensorflow-connector <https://github.com/tensorflow/ecosystem/tree/master/spark/spark-tensorflow-connector>`_ and implements similar functionality in order to save easy pandas dataframe to tfrecords and to restore tfrecords to pandas dataframe.
