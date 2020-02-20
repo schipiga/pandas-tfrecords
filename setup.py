@@ -5,7 +5,7 @@ setup(
     name='pandas-tfrecords',
     version='0.1',
     description='Convertor pandas to tfrecords & tfrecords to pandas',
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     url='https://github.com/schipiga/pandas-tfrecords/',
     author='Sergei Chipiga <chipiga86@gmail.com>',
     author_email='chipiga86@gmail.com',
