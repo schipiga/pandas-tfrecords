@@ -4,6 +4,15 @@ This project was born under impression [spark-tensorflow-connector](https://gith
 
 ### Quick start
 
+```
+pip install pandas-tfrecords
+```
+
+```python
+
+
+```
+
 ### API
 
 ### Q&A

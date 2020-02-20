@@ -12,7 +12,7 @@ __all__ = 'from_tfrecords',
 s3_fs = s3fs.S3FileSystem()
 
 
-def from_tfrecords(file_paths, schema=None, compression_type='auto', cast=False):
+def from_tfrecords(file_paths, schema=None, compression_type='auto', cast=True):
     file_paths = list(_normalize(file_paths))
 
     if compression_type == 'auto':
@@ -35,16 +35,16 @@ def from_tfrecords(file_paths, schema=None, compression_type='auto', cast=False)
     return to_pandas(parsed, cast=cast)
 
 
-def to_pandas(tfrecords, cast=False):
-    casting = _cast if cast else lambda o: o
+def to_pandas(tfrecords, cast=True):
     df = None
+    casting = _cast if cast else lambda o: o
     for row in tfrecords:
 
         if df is None:
             df = pd.DataFrame(columns=row.keys())
-            row = {key: casting(val.numpy()) for key, val in row.items()}
 
-        df = df.append(df_row, ignore_index=True)
+        row = {key: casting(val.numpy()) for key, val in row.items()}
+        df = df.append(row, ignore_index=True)
     return df
 
 
@@ -173,6 +173,6 @@ def _cast(val):
             return float(val)
         except ValueError:
             try:
-                return x.decode('utf8')
+                return val.decode('utf8')
             except UnicodeDecodeError:
                 return val

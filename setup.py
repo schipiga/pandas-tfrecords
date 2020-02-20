@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(
-    name='pandas_tfrecords',
+    name='pandas-tfrecords',
     version='0.1',
     description='Convertor pandas to tfrecords & tfrecords to pandas',
     url='https://github.com/schipiga/pandas-tfrecords/',

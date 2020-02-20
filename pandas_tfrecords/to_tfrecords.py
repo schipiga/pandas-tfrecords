@@ -1,3 +1,4 @@
+import os
 import uuid
 
 import numpy as np
@@ -11,7 +12,7 @@ __all__ = 'to_tfrecords',
 s3_fs = s3fs.S3FileSystem()
 
 
-def to_tfrecords(df, folder, compression_type=None, compression_level=9, columns=None, max_mb=50):
+def to_tfrecords(df, folder, compression_type='GZIP', compression_level=9, columns=None, max_mb=50):
     schema = get_schema(df, columns)
     tfrecords = get_tfrecords(df, schema)
     tfrecords = split_by_size(tfrecords, max_mb=max_mb)
@@ -20,11 +21,13 @@ def to_tfrecords(df, folder, compression_type=None, compression_level=9, columns
                     compression_level=compression_level)
 
 
-def write_tfrecords(tfrecords, compression_type=None, compression_level=9):
+def write_tfrecords(tfrecords, folder, compression_type=None, compression_level=9):
     s3_folder = None
     if folder.startswith('s3'):
         s3_folder = folder
         folder = tempfile.mkdtemp()
+    else:
+        os.makedirs(folder, exist_ok=True)
 
     uid = str(uuid.uuid4())
     opts = {}
@@ -39,7 +42,7 @@ def write_tfrecords(tfrecords, compression_type=None, compression_level=9):
         file_name = f'part-{str(idx).zfill(5)}-{uid}.tfrecords'
         file_path = f'{folder}/{file_name}'
 
-        with tf.io.TFRecordWriter(file_path, options=options) as writer:
+        with tf.io.TFRecordWriter(file_path, **opts) as writer:
             for item in chunk:
                 writer.write(item.SerializeToString())
 
