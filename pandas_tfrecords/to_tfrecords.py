@@ -19,7 +19,7 @@ def to_tfrecords(df, folder, compression_type='GZIP', compression_level=9, colum
     if max_mb:
         tfrecords = split_by_size(tfrecords, max_mb=max_mb)
     else:
-        tfrecords = [[i for in tfrecords]]
+        tfrecords = [[tfrecord for tfrecord in tfrecords]]
 
     write_tfrecords(tfrecords, folder,
                     compression_type=compression_type,
