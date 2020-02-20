@@ -32,18 +32,19 @@ def from_tfrecords(file_paths, schema=None, compression_type='auto', cast=False)
         parser = read_example(features)
 
     parsed = dataset.map(parser)
-    return to_pandas(parsed)
+    return to_pandas(parsed, cast=cast)
 
 
-def to_pandas(tfrecords):
+def to_pandas(tfrecords, cast=False):
+    casting = _cast if cast else lambda o: o
     df = None
     for row in tfrecords:
 
         if df is None:
             df = pd.DataFrame(columns=row.keys())
+            row = {key: casting(val.numpy()) for key, val in row.items()}
 
-        row = {key: val.numpy() for key, val in row.items()}
-        df = df.append(row, ignore_index=True)
+        df = df.append(df_row, ignore_index=True)
     return df
 
 
@@ -148,6 +149,7 @@ def _normalize(file_paths):
             else:
                 yield _download_s3(file_path)
         else:
+            file_path = os.path.abspath(os.path.expanduser(file_path))
             if os.path.isdir(file_path):
                 for file_name in os.listdir(file_path):
                     yield os.path.join(file_path, file_name)
@@ -159,3 +161,18 @@ def _download_s3(s3_path):
     tmp_path = tempfile.mkstemp()[1]
     s3_fs.get(s3_path, tmp_path)
     return tmp_path
+
+
+def _cast(val):
+    if not isinstance(val, bytes):
+        return val
+    try:
+        return int(val)
+    except ValueError:
+        try:
+            return float(val)
+        except ValueError:
+            try:
+                return x.decode('utf8')
+            except UnicodeDecodeError:
+                return val
