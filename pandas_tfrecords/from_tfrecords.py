@@ -114,6 +114,7 @@ def _get_feature_type(feature=None, type_=None):
             int: tf.int64,
             float: tf.float32,
             str: tf.string,
+            bytes: tf.string,
         }[type_]
 
     if feature:
