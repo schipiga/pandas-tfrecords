@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='pandas-tfrecords',
-    version='0.1.3',
+    version='0.1.4',
     description='Converter pandas to tfrecords & tfrecords to pandas',
     long_description=open('README.rst').read(),
     url='https://github.com/schipiga/pandas-tfrecords/',

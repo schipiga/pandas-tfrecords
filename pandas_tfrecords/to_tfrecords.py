@@ -28,6 +28,8 @@ def to_tfrecords(df, folder, compression_type='GZIP', compression_level=9, colum
 
 
 def write_tfrecords(tfrecords, folder, compression_type=None, compression_level=9):
+    compression_ext = '.gz' if compression_type else ''
+
     s3_folder = None
     if folder.startswith('s3'):
         s3_folder = folder
@@ -45,7 +47,7 @@ def write_tfrecords(tfrecords, folder, compression_type=None, compression_level=
         )
 
     for idx, chunk in enumerate(tfrecords):
-        file_name = f'part-{str(idx).zfill(5)}-{uid}.tfrecords'
+        file_name = f'part-{str(idx).zfill(5)}-{uid}.tfrecords{compression_ext}'
         file_path = f'{folder}/{file_name}'
 
         with tf.io.TFRecordWriter(file_path, **opts) as writer:

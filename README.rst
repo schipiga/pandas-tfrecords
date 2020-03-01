@@ -73,7 +73,7 @@ Arguments:
 - ``compression_type='GZIP'`` - compression types: ``'GZIP'``, ``'ZLIB'``, ``None``. If ``None`` not compressed.
 - ``compression_level=9`` - compression level 0...9.
 - ``columns=None`` - list of columns to save, if ``None`` all columns will be saved.
-- ``max_mb=50`` - maximum size of uncompressed data to save. If dataframe total size is bigger than this limit, then several files will be saved. If ``None`` it isn't limited and one file will be saved.
+- ``max_mb=50`` - maximum size of uncompressed data to save in single file. If dataframe total size is bigger than this limit, then it will be splitted to several files. If ``None`` it isn't limited and single file will be saved.
 
 alias ``pandas_tfrecords.pd2tf``
 
