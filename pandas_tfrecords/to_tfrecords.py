@@ -118,7 +118,7 @@ def _get_feature_func(val):
     if isinstance(val, (bytes, str)):
         return _bytes_feature
 
-    if isinstance(val, (int, np.integer)):
+    if isinstance(val, (int, np.integer, bool, np.bool_)):
         return _int64_feature
 
     if isinstance(val, (float, np.floating)):

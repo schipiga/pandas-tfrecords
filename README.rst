@@ -30,6 +30,25 @@ Quick start
     pd2tf(df, 's3://my-bucket/tfrecords')
     my_df = tf2pd('s3://my-bucket/tfrecords')
 
+**boolean support (v0.1.6+):**
+
+.. code:: python
+
+    import pandas as pd
+    from pandas_tfrecords import pd2tf, tf2pd
+
+    df = pd.DataFrame({'A': [True, False, True], 'B': ['a', 'b', 'c'], 'C': [[1, False], [3, True], [5, False]]})
+
+    pd2tf(df, './tfrecords')
+
+    my_df = tf2pd('./tfrecords', schema={'A': bool, 'B': str, 'C': [int, bool]})
+    
+    # or if needs 0/1 instead of True/False
+    my_df = tf2pd('./tfrecords', schema={'A': int, 'B': str, 'C': [int, int]})
+
+    # or just skip schema, int used by default if bool isn't specified
+    my_df = tf2pd('./tfrecords')
+
 ===============
 Converted types
 ===============
@@ -41,9 +60,9 @@ pandas -> tfrecords
 .. code::
 
     bytes, str -> tf.string
-    int, np.integer -> tf.int64
+    int, np.integer, bool, np.bool_ -> tf.int64
     float, np.floating -> tf.float32
-    list, np.ndarray of bytes, str, int, np.integer, float, np.floating -> sequence of tf.string, tf.int64, tf.float32
+    list, np.ndarray of bytes, str, int, np.integer, bool, np.bool_, float, np.floating -> sequence of tf.string, tf.int64, tf.float32
 
 -------------------
 tfrecords -> pandas
@@ -52,9 +71,9 @@ tfrecords -> pandas
 .. code::
 
     tf.string -> bytes
-    tf.int64 -> int
+    tf.int64 -> int, bool
     tf.float32 -> float
-    sequence of tf.string, tf.int64, tf.float32 -> list of bytes, int, float
+    sequence of tf.string, tf.int64, tf.float32 -> list of bytes, int, bool, float
 
 **NB!** Please pay attention it works only with **one-dimentional** arrays. It means ``[1, 2, 3]`` will be converted to both sides, but ``[[1,2,3]]`` **won't** be converted to any side. It works that, because ``spark-tensorflow-connector`` works similar, and I didn't learn yet how to implement nested sequences. In order to work with **nested** sequences you should use ``reshape``.
 
