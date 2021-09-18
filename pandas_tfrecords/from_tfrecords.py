@@ -1,6 +1,7 @@
 import os
 import tempfile
 
+import numpy as np
 import pandas as pd
 import s3fs
 import tensorflow as tf
@@ -32,18 +33,18 @@ def from_tfrecords(file_paths, schema=None, compression_type='auto', cast=True):
         parser = read_example(features)
 
     parsed = dataset.map(parser)
-    return to_pandas(parsed, cast=cast)
+    return to_pandas(parsed, schema=schema, cast=cast)
 
 
-def to_pandas(tfrecords, cast=True):
+def to_pandas(tfrecords, schema=None, cast=True):
     df = None
-    casting = _cast if cast else lambda o: o
     for row in tfrecords:
 
         if df is None:
             df = pd.DataFrame(columns=row.keys())
 
-        row = {key: casting(val.numpy()) for key, val in row.items()}
+        row = {key: _casting(val.numpy(), schema and schema.get(key), cast)
+            for key, val in row.items()}
         df = df.append(row, ignore_index=True)
     return df
 
@@ -112,6 +113,7 @@ def _get_feature_type(feature=None, type_=None):
     if type_:
         return {
             int: tf.int64,
+            bool: tf.int64,
             float: tf.float32,
             str: tf.string,
             bytes: tf.string,
@@ -164,9 +166,28 @@ def _download_s3(s3_path):
     return tmp_path
 
 
-def _cast(val):
-    if not isinstance(val, bytes):
+def _casting(val, caster, cast_bytes):
+    if isinstance(val, (list, np.ndarray)):
+
+        if caster:
+            return [_casting_item(va, ca, cast_bytes) for va, ca in zip(val, caster)]
+        else:
+            return [_casting_item(va, None, cast_bytes) for va in val]
+
+    else:
+        return _casting_item(val, caster, cast_bytes)
+
+def _casting_item(val, caster, cast_bytes):
+    if caster:
+
+        if (caster is str) and isinstance(val, bytes):
+            return val.decode('utf-8')
+        else:
+            return caster(val)
+
+    if not (cast_bytes and isinstance(val, bytes)):
         return val
+
     try:
         return int(val)
     except ValueError:
