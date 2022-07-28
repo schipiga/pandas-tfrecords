@@ -22,5 +22,6 @@ setup(
         'tensorflow',
         'pandas',
         'numpy',
+        'pqdm'
     ],
 )

@@ -1,5 +1,6 @@
 import os
 import tempfile
+from typing import Type
 import uuid
 
 import numpy as np
@@ -82,18 +83,31 @@ def get_tfrecords(df, schema):
         yield ex
 
 
-def get_schema(df, columns=None):
+def get_schema(df, columns=None, spark_schema=None):
     schema = {}
 
-    for col, val in df.iloc[0].to_dict().items():
-        if columns and col not in columns:
-            continue
+    if spark_schema is None:
+        for col, val in df.iloc[0].to_dict().items():
+            if val is None:
+                val = -999
+            if columns and col not in columns:
+                continue
 
-        if isinstance(val, (list, np.ndarray)):
-            schema[col] = (lambda f: lambda x: \
-                tf.train.FeatureList(feature=[f(i) for i in x]))(_get_feature_func(val[0]))
-        else:
-            schema[col] = (lambda f: lambda x: f(x))(_get_feature_func(val))
+            if isinstance(val, (list, np.ndarray)):
+                schema[col] = (lambda f: lambda x:
+                               tf.train.FeatureList(feature=[f(i) for i in x]))(_get_feature_func(val[0]))
+            else:
+                schema[col] = (lambda f: lambda x: f(x))(
+                    _get_feature_func(val))
+    else:
+        for col in df.columns:
+            if 'int' in spark_schema[col]:
+                schema[col] = _int64_feature
+            elif ('float' in spark_schema[col]) or ('double' in spark_schema[col]):
+                schema[col] = _float_feature
+            else:
+                schema[col] = _bytes_feature
+
     return schema
 
 
@@ -128,16 +142,39 @@ def _get_feature_func(val):
 
 
 def _bytes_feature(value):
+    if value is None:
+        value = ''
     if isinstance(value, type(tf.constant(0))):
         value = value.numpy()
     if isinstance(value, str):
         value = str.encode(value)
+    try:
+        _ = len(value)
+    except TypeError:
+        value = [value]
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
 def _float_feature(value):
-    return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
+    if value is None:
+        value = -999
+    try:
+        _ = len(value)
+    except TypeError:
+        if np.isnan(value):
+            value = -999
+        value = [value]
+    return tf.train.Feature(float_list=tf.train.FloatList(value=value))
 
 
 def _int64_feature(value):
-    return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+    if value is None:
+        value = -999
+    try:
+        _ = len(value)
+    except TypeError:
+        if np.isnan(value):
+            value = -999
+        value = [value]
+    value = [-999 if np.isnan(c) else int(c) for c in value]
+    return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
